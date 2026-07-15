@@ -125,15 +125,6 @@ export const MaPremierePage:React.FC<PageProps> = () => (
       //yearMark={useControl("annee")}
     />
 
-    <ChartYearSerie
-      title="Capacite isdnd"
-      dataset="capacite_isdnd"
-      yearKey="annee"
-      valueKey="capacite"
-      categoryKey="code_departement"
-      type="area"
-      yearMark={useControl("annee")}
-    />
     <ChartComparison
       title="Tonnage de déchet"
       dataset="dma_collecte_traitement"
