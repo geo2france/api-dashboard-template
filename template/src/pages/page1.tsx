@@ -1,14 +1,26 @@
 
-import { SimpleRecord } from "@geo2france/api-dashboard"
+import { PageProps, SimpleRecord } from "@geo2france/api-dashboard"
 import  {Transform, Dashboard, Dataset, Filter, 
   Producer, Control, useControl, Select, ChartYearSerie, Debug, Join, 
-  ChartComparison} from "@geo2france/api-dashboard/dsl"
+  ChartComparison,
+  ChartEvolution,
+  StatisticsCollection,
+  Statistics} from "@geo2france/api-dashboard/dsl"
 
 
 
-export const MaPremierePage = () => (
+export const MaPremierePage:React.FC<PageProps> = () => (
   <Dashboard name="Premiere page de test">
     <Debug />
+
+    <Dataset 
+      id="referentiel_departements"
+      type="wfs"
+      url="https://www.geo2france.fr/geoserver/spld/ows"
+      resource="spld:DEPARTEMENT"
+      meta={{ properties:['NOM_DEP','INSEE_DEP']}}
+    />
+
     <Dataset
       id="dma_collecte_traitement"
       resource="sinoe-(r)-destination-des-dma-collectes-par-type-de-traitement/lines"
@@ -24,9 +36,6 @@ export const MaPremierePage = () => (
       <Transform>
         SELECT [L_TYP_REG_DECHET], [ANNEE], [C_DEPT], SUM([TONNAGE_DMA]) as
         [TONNAGE_DMA] FROM ? GROUP BY [ANNEE], [C_DEPT], [L_TYP_REG_DECHET]
-      </Transform>
-      <Transform>
-        {(data) => data.map((row: SimpleRecord) => ({ pouette: 4, ...row }))}
       </Transform>
       <Producer url="https://www.sinoe.org">Ademe</Producer>
       <Producer url="https://odema-hautsdefrance.org/">Odema</Producer>
@@ -75,9 +84,9 @@ export const MaPremierePage = () => (
         GROUP BY departement_nom, departement_code
       </Transform>
       <Join
-        dataset="dma_collecte_traitement"
+        dataset="referentiel_departements"
         joinType="inner"
-        joinKey={["departement_code", "C_DEPT"]}
+        joinKey={["departement_code", "INSEE_DEP"]}
       />
       <Producer url="https://odema-hautsdefrance.org/">Odema</Producer>
     </Dataset>
@@ -102,13 +111,27 @@ export const MaPremierePage = () => (
       />
     </Control>
 
+
+    <ChartEvolution
+      title="Capacite isdnd"
+      dataset="capacite_isdnd"
+      timeKey="annee"
+      valueKey="capacite"
+      nameKey="code_departement"
+      chartType="area"
+      option={{xAxis:{max:'2030'}}}
+      timeMarker={useControl('annee')}
+      //stack={true}
+      //yearMark={useControl("annee")}
+    />
+
     <ChartYearSerie
       title="Capacite isdnd"
       dataset="capacite_isdnd"
       yearKey="annee"
       valueKey="capacite"
       categoryKey="code_departement"
-      type="bar"
+      type="area"
       yearMark={useControl("annee")}
     />
     <ChartComparison
@@ -122,7 +145,7 @@ export const MaPremierePage = () => (
     <ChartComparison
       title="Nombre de déchetterie par département"
       dataset="dechetterie_nb_par_dep"
-      nameKey="dep"
+      nameKey="NOM_DEP"
       valueKey="nb"
       chartType="pie"
       label="value"
@@ -140,5 +163,49 @@ export const MaPremierePage = () => (
       label="percent"
       option={{xAxis:{axisLabel:{formatter: (v:number) => `${v/1e3} khab` }}}}
     />
+
+
+           <Dataset
+            id="atlas_cocc"
+            type="wfs"
+            url="https://www.geo2france.fr/geoserver/picardie_nature/ows"
+            resource="picardie_nature:atlas_cocc"
+            meta={{properties:['ref_year', 'n_sp']}}
+           >
+                <Filter operator="gte" field="ref_year">2015-01-01</Filter>
+                <Transform>SELECT year([ref_year]) as annee, sum(LEAST([n_sp],1)) as presence FROM ? GROUP BY year([ref_year]) ORDER BY annee ASC</Transform>
+                
+                <Producer url="https://www.geo2france.fr/datahub/dataset/66865703-8c00-41b9-a7a2-226edd705c7b">Picardie Nature</Producer>
+           </Dataset>
+    
+            <Dataset
+            id="atlas_amphibiens"
+            type="wfs"
+            url="https://www.geo2france.fr/geoserver/picardie_nature/ows"
+            resource="picardie_nature:atlas_amphibiens"
+            meta={{properties:['ref_year', 'n_sp']}}
+           >
+                <Filter operator="gte" field="ref_year">2020-01-01</Filter>
+                <Transform>SELECT year([ref_year]) as annee, sum(LEAST([n_sp],1)) as presence FROM ? GROUP BY year([ref_year]) ORDER BY annee ASC</Transform>
+                
+                <Producer url="https://www.geo2france.fr/datahub/dataset/66865703-8c00-41b9-a7a2-226edd705c7b">Picardie Nature</Producer>
+           </Dataset>
+    
+            <ChartYearSerie 
+                title="Atlas coccinelles : nombre de maille 10x10 de présence"
+                dataset="atlas_cocc"
+                yearKey="annee"
+                valueKey="presence"
+            />
+    
+            <StatisticsCollection title="Atlas en 2025 - Mailles 10x10km de présence">
+                <Statistics dataset="atlas_cocc" dataKey="presence" compareWith="first" color="#d90019" icon="game-icons:ladybug" 
+                evolutionSuffix="Depuis 2015" title="Coccinelles"/>
+    
+                <Statistics dataset="atlas_amphibiens" title="Amphibiens" dataKey="presence" compareWith="first" color="green" icon="fa7-solid:frog" 
+                evolutionSuffix="Depuis 2020"/>
+    
+    
+            </StatisticsCollection>
   </Dashboard>
 );
