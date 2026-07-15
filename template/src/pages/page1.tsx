@@ -1,5 +1,5 @@
 
-import { PageProps, SimpleRecord } from "@geo2france/api-dashboard"
+import { PageProps } from "@geo2france/api-dashboard"
 import  {Transform, Dashboard, Dataset, Filter, 
   Producer, Control, useControl, Select, ChartYearSerie, Debug, Join, 
   ChartComparison,
