@@ -114,6 +114,7 @@ export const MaPremierePage:React.FC<PageProps> = () => (
 
     <ChartEvolution
       title="Capacite isdnd"
+      size={1.2}
       dataset="capacite_isdnd"
       timeKey="annee"
       valueKey="capacite"
@@ -127,6 +128,7 @@ export const MaPremierePage:React.FC<PageProps> = () => (
 
     <ChartComparison
       title="Tonnage de déchet"
+      size={0.8}
       dataset="dma_collecte_traitement"
       nameKey="L_TYP_REG_DECHET"
       valueKey="TONNAGE_DMA"
@@ -182,10 +184,10 @@ export const MaPremierePage:React.FC<PageProps> = () => (
                 <Producer url="https://www.geo2france.fr/datahub/dataset/66865703-8c00-41b9-a7a2-226edd705c7b">Picardie Nature</Producer>
            </Dataset>
     
-            <ChartYearSerie 
+            <ChartEvolution 
                 title="Atlas coccinelles : nombre de maille 10x10 de présence"
                 dataset="atlas_cocc"
-                yearKey="annee"
+                timeKey="annee"
                 valueKey="presence"
             />
     
@@ -195,8 +197,6 @@ export const MaPremierePage:React.FC<PageProps> = () => (
     
                 <Statistics dataset="atlas_amphibiens" title="Amphibiens" dataKey="presence" compareWith="first" color="green" icon="fa7-solid:frog" 
                 evolutionSuffix="Depuis 2020"/>
-    
-    
             </StatisticsCollection>
   </Dashboard>
 );
